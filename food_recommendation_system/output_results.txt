@@ -1,0 +1,169 @@
+
+
+======================================================================
+  FOOD RECOMMENDATION SYSTEM
+======================================================================
+  An end-to-end project demonstrating content-based and
+  collaborative filtering with evaluation metrics.
+
+
+
+======================================================================
+  STEP 1: DATA GENERATION
+======================================================================
+
+  Generated 200 food items across 8 cuisines.
+  Generated 2199 ratings from 50 users.
+
+  📋 Sample food items:
+ food_id                name cuisine    category
+       1    Margherita Pizza Italian    Beverage
+       2 Spaghetti Carbonara Italian     Dessert
+       3          Bruschetta Italian    Beverage
+       4            Tiramisu Italian       Snack
+       5             Risotto Italian     Dessert
+       6             Lasagna Italian   Appetizer
+       7         Panna Cotta Italian   Appetizer
+       8     Minestrone Soup Italian       Snack
+       9       Caprese Salad Italian Main Course
+      10  Fettuccine Alfredo Italian    Beverage
+
+  📋 Sample ratings:
+ user_id  food_id  rating
+       1       31     5.0
+       1      173     3.5
+       1       85     2.5
+       1      200     3.5
+       1       61     3.0
+       1      156     2.0
+       1       46     NaN
+       1      183     4.0
+       1       10     3.5
+       1      197     3.5
+
+
+======================================================================
+  STEP 2: DATA PREPROCESSING
+======================================================================
+
+============================================================
+PREPROCESSING PIPELINE
+============================================================
+
+[1/3] Handling missing ratings …
+  → Found 109 missing ratings (5.0% of total).
+  ✓ Imputed missing ratings using per-user means (global mean fallback: 2.94).
+
+[2/3] Creating content features …
+  ✓ Created content features for 200 food items.
+    Sample: "italian beverage olive oil tomato basil"
+
+[3/3] Splitting into train/test …
+  ✓ Split ratings → Train: 1,759  |  Test: 440
+
+  Summary: 50 users × 200 foods | Sparsity: 78.0%
+
+
+======================================================================
+  STEP 3A: CONTENT-BASED FILTERING
+======================================================================
+
+  Building content-based model (TF-IDF + cosine similarity) …
+
+  ✓ Content-based model fitted: 200 items, 544 TF-IDF features.
+
+  🔍 Foods similar to 'Butter Chicken':
+ food_id          name cuisine category  similarity_score
+      54   Gulab Jamun  Indian    Snack          0.569445
+      66  Paneer Tikka  Indian  Dessert          0.488309
+      60   Mango Lassi  Indian    Snack          0.420200
+      67  Idli Sambhar  Indian    Snack          0.412692
+      59 Chole Bhature  Indian    Snack          0.390895
+
+  🎯 Content-based recommendations for User 1:
+ food_id           name cuisine category  aggregated_score
+      43        Fajitas Mexican    Snack          0.885137
+      35 Nachos Supreme Mexican Beverage          0.805004
+      38    Chilaquiles Mexican Beverage          0.746906
+      33         Pozole Mexican    Snack          0.628198
+      27      Guacamole Mexican Beverage          0.592261
+
+
+======================================================================
+  STEP 3B: COLLABORATIVE FILTERING
+======================================================================
+
+  Building collaborative filtering model (SVD matrix factorisation) …
+
+  ✓ Collaborative filtering model fitted: 50 users × 200 foods, k=20 latent factors.
+
+  🎯 Collaborative filtering recommendations for User 1:
+ food_id          name       cuisine    category  predicted_rating
+      37  Mole Poblano       Mexican   Appetizer              3.53
+     199 Za'atar Bread Mediterranean   Appetizer              3.46
+      33        Pozole       Mexican       Snack              3.42
+     176       Falafel Mediterranean Main Course              3.42
+     101    Sushi Roll      Japanese Main Course              3.34
+
+  📊 Predicted rating for User 1 → 'Bruschetta': 2.72
+
+
+======================================================================
+  STEP 4: EVALUATION METRICS
+======================================================================
+
+============================================================
+EVALUATION
+============================================================
+
+[1/2] Computing RMSE on 440 test ratings …
+  ✓ RMSE = 1.0124
+    Interpretation: predictions are off by ~1.01 stars on a 1-5 scale.
+
+[2/2] Computing Mean Precision@10 …
+  ✓ Mean Precision@10 = 0.0220
+    Interpretation: on average, 0.2 out of 10 recommended foods are relevant (rated ≥ 3.5).
+
+────────────────────────────────────────
+  RMSE              : 1.0124
+  Mean Precision@10  : 0.0220
+────────────────────────────────────────
+
+
+======================================================================
+  SUMMARY & COMPARISON
+======================================================================
+
+  ┌─────────────────────────────────────────────────────────────────┐
+  │                    METHOD COMPARISON                            │
+  ├─────────────────────┬───────────────────────────────────────────┤
+  │  Content-Based      │  • Uses item features (cuisine,          │
+  │  Filtering          │    category, ingredients)                 │
+  │                     │  • TF-IDF vectorisation + cosine sim.     │
+  │                     │  • No cold-start for items                │
+  │                     │  • Explainable recommendations            │
+  ├─────────────────────┼───────────────────────────────────────────┤
+  │  Collaborative      │  • Uses user-item interactions only       │
+  │  Filtering (SVD)    │  • Matrix factorisation discovers latent  │
+  │                     │    taste dimensions                       │
+  │                     │  • Captures cross-item patterns           │
+  │                     │  • Cold-start for new users/items         │
+  └─────────────────────┴───────────────────────────────────────────┘
+    
+  Collaborative Filtering Evaluation:
+    • RMSE              = 1.0124
+    • Mean Precision@10 = 0.0220
+
+  ┌─────────────────────────────────────────────────────────────────┐
+  │  NEXT STEPS (for production):                                   │
+  │    1. Hybrid model combining both approaches                    │
+  │    2. Deep learning (neural collaborative filtering)            │
+  │    3. A/B testing with real user feedback                       │
+  │    4. Real-time recommendation serving with caching             │
+  │    5. Incorporate contextual features (time, location, dietary  │
+  │       restrictions)                                             │
+  └─────────────────────────────────────────────────────────────────┘
+    
+======================================================================
+  Pipeline complete! All steps executed successfully.
+======================================================================
