@@ -49,6 +49,35 @@ Built a **hybrid recommendation system** that intelligently combines three appro
 - **Evaluation pipeline** — RMSE and Precision@K with interpretable output
 - **Modular architecture** — clean separation of data, preprocessing, models, and evaluation
 
+## 📸 Demo Screenshots
+
+### Hybrid Recommendations
+Get personalised food recommendations using the hybrid engine that combines content-based and collaborative filtering:
+
+![Hybrid Recommendations](screenshots/01_hybrid_recommendations.png)
+
+### Find Similar Foods
+Discover dishes similar to your favourites using content-based similarity scoring:
+
+![Similar Foods](screenshots/02_similar_foods.png)
+
+### Model Evaluation
+View detailed evaluation metrics and compare recommendation methods:
+
+![Model Evaluation](screenshots/03_model_evaluation.png)
+
+### Food Catalog
+Browse and filter the complete food catalog by cuisine and category:
+
+![Food Catalog](screenshots/04_food_catalog.png)
+
+### System Architecture
+Understand how the recommendation engine works under the hood:
+
+![How It Works](screenshots/05_how_it_works.png)
+
+---
+
 ## 📁 Project Structure
 
 ```
