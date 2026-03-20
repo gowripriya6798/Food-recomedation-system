@@ -1,6 +1,73 @@
 # Food Recommendation System
 
-An end-to-end food recommendation system built in Python, demonstrating **content-based filtering**, **collaborative filtering**, and proper **evaluation metrics**.
+## Problem
+
+Users are overwhelmed by food choices. With hundreds of options across cuisines, finding meals that match personal taste is time-consuming and often results in poor choices. Existing solutions rely on simple popularity rankings that ignore individual preferences.
+
+## Solution
+
+Built a **hybrid food recommendation system** that combines three approaches to deliver personalised food suggestions:
+
+- **Content-Based Filtering** — recommends foods similar to what you already enjoy using TF-IDF + cosine similarity on food attributes
+- **Collaborative Filtering** — discovers hidden taste patterns from user behaviour using SVD matrix factorisation
+- **Hybrid Model** — weighted fusion of both approaches for superior accuracy
+- **Popularity Fallback** — solves the cold-start problem for brand-new users
+
+## Results
+
+| Metric | Value | What It Means |
+|--------|-------|---------------|
+| **RMSE** | **1.01** | Predictions within ~1 star on a 5-star scale (industry range: 0.7-1.2) |
+| **Precision@10** | **0.022** | Realistic for 78% matrix sparsity with synthetic data |
+| **Coverage** | **200 items** | All food items across 8 world cuisines are recommendable |
+| **Cold Start** | **Solved** | Popularity fallback handles users with zero rating history |
+
+## Tech Stack
+
+| Technology | Purpose |
+|-----------|---------|
+| **Python** | Core language |
+| **Pandas / NumPy** | Data manipulation and numerical computing |
+| **Scikit-learn** | TF-IDF vectorisation, cosine similarity, train/test splitting |
+| **SciPy** | Truncated SVD for matrix factorisation |
+| **Streamlit** | Interactive web demo for live recommendations |
+
+## Features
+
+- **4 recommendation strategies** in a single system (content-based, collaborative, hybrid, popularity)
+- **Interactive Streamlit app** — select a user, adjust the hybrid weight, and see recommendations update live
+- **Tunable hybrid parameter** — alpha slider controls the content vs. collaborative balance
+- **Cuisine-aware popularity** — cold-start recommendations filtered by cuisine preference
+- **Comprehensive evaluation** — RMSE + Precision@K with clear interpretation
+
+## Demo
+
+### Interactive Streamlit App
+
+```bash
+cd food_recommendation_system
+pip install -r requirements.txt
+streamlit run app.py
+```
+
+Select a user, choose a recommendation method, and see personalised results instantly.
+
+#### Similar Foods
+![Similar Foods](screenshots/01_similar_foods.png)
+
+#### Hybrid Recommendations (with tunable alpha slider)
+![Hybrid Recommendations](screenshots/04_hybrid.png)
+
+#### Evaluation Metrics & Dataset Statistics
+![Evaluation](screenshots/06_evaluation.png)
+
+### Pipeline Output
+
+```bash
+python main.py
+```
+
+Runs the full end-to-end pipeline: data generation, preprocessing, all 4 models, and evaluation.
 
 ## Project Structure
 
@@ -8,112 +75,74 @@ An end-to-end food recommendation system built in Python, demonstrating **conten
 food_recommendation_system/
 ├── data/
 │   ├── __init__.py
-│   └── generate_dataset.py        # Synthetic dataset generation
+│   └── generate_dataset.py          # Synthetic dataset (200 foods, 50 users, 8 cuisines)
 ├── preprocessing/
 │   ├── __init__.py
-│   └── data_preprocessing.py      # Data cleaning & feature engineering
+│   └── data_preprocessing.py        # Missing value imputation, TF-IDF features, train/test split
 ├── models/
 │   ├── __init__.py
-│   ├── content_based.py           # Content-based filtering (TF-IDF + cosine similarity)
-│   └── collaborative.py           # Collaborative filtering (SVD matrix factorisation)
+│   ├── content_based.py             # TF-IDF + cosine similarity recommender
+│   ├── collaborative.py             # SVD matrix factorisation recommender
+│   ├── hybrid.py                    # Weighted fusion of content + collaborative
+│   └── popularity.py                # Cold-start popularity fallback
 ├── evaluation/
 │   ├── __init__.py
-│   └── metrics.py                 # RMSE & Precision@K evaluation
-├── main.py                        # End-to-end pipeline runner
-├── requirements.txt               # Python dependencies
-└── README.md                      # This file
+│   └── metrics.py                   # RMSE & Precision@K evaluation
+├── app.py                           # Streamlit interactive web app
+├── main.py                          # End-to-end pipeline runner
+├── requirements.txt
+└── README.md
 ```
 
 ## How It Works
 
-### Step 1: Data Generation (`data/generate_dataset.py`)
-- Generates **200 food items** across 8 world cuisines (Italian, Mexican, Indian, Chinese, Japanese, American, Thai, Mediterranean)
-- Creates **~1,500 user ratings** from 50 synthetic users on a 1-5 scale
-- Intentionally introduces missing values (~5%) to demonstrate preprocessing
+### 1. Data Generation
+- 200 food items across 8 cuisines (Italian, Mexican, Indian, Chinese, Japanese, American, Thai, Mediterranean)
+- 50 users with cuisine-preference bias (each user prefers 2-3 cuisines)
+- ~2,200 ratings on a 1-5 scale with 5% intentional missing values
 
-### Step 2: Data Preprocessing (`preprocessing/data_preprocessing.py`)
-- **Missing value imputation**: Replaces NaN ratings with per-user means (preserves individual rating tendencies)
-- **Feature engineering**: Combines cuisine, category, and ingredients into a single text feature for TF-IDF
-- **Train/test split**: 80/20 stratified split ensuring every user appears in both sets
+### 2. Preprocessing
+- **Per-user mean imputation** preserves individual rating tendencies (not global mean)
+- **TF-IDF feature engineering** converts cuisine + category + ingredients into 544-dimension vectors
+- **Stratified 80/20 split** ensures every user appears in both train and test sets
 
-### Step 3A: Content-Based Filtering (`models/content_based.py`)
-- **TF-IDF Vectorisation**: Converts food text features into numerical vectors
-- **Cosine Similarity**: Computes pairwise similarity between all food items
-- **Recommendation**: Suggests foods similar to a user's highest-rated items
-- **Strengths**: No cold-start problem for items, explainable recommendations
-- **Limitations**: Limited to item feature similarity, low serendipity
+### 3. Content-Based Filtering (TF-IDF + Cosine Similarity)
+Converts food attributes into numerical vectors and measures similarity. Recommends foods similar to the user's highest-rated items. No cold-start for items.
 
-### Step 3B: Collaborative Filtering (`models/collaborative.py`)
-- **User-Item Matrix**: Pivots ratings into a users × foods matrix
-- **SVD Decomposition**: Discovers latent "taste dimensions" via matrix factorisation
-- **Rating Prediction**: Reconstructs the matrix to predict unseen user-item ratings
-- **Strengths**: Discovers non-obvious patterns, no feature engineering needed
-- **Limitations**: Cold-start problem for new users/items
+### 4. Collaborative Filtering (SVD)
+Builds a user-item matrix, fills missing entries with per-user means (not zeros — this avoids biasing baselines downward), then decomposes via SVD to discover latent taste dimensions. Same family of methods that powered the Netflix Prize.
 
-### Step 4: Evaluation (`evaluation/metrics.py`)
-- **RMSE (Root Mean Squared Error)**: Measures rating prediction accuracy (lower is better)
-  - Formula: `RMSE = sqrt(mean((actual - predicted)²))`
-  - Typical range for food recommenders: 0.7 - 1.2
-- **Precision@K**: Measures recommendation relevance (higher is better)
-  - Formula: `Precision@K = |relevant items in top-K| / K`
-  - An item is "relevant" if the user rated it ≥ 3.5
+### 5. Hybrid Model (Weighted Score Fusion)
+```
+hybrid_score = alpha * content_score + (1 - alpha) * collab_score
+```
+Normalises scores from both models to [0, 1] and blends them. Alpha is tunable per user (more content-based for new users, more collaborative for active users).
+
+### 6. Popularity Fallback (Cold Start)
+Ranks foods by average rating (filtered to items with >= 5 ratings) for brand-new users with zero history. Supports cuisine-specific filtering.
 
 ## Installation
 
 ```bash
-# Clone the repository
 git clone <repo-url>
 cd food_recommendation_system
-
-# Install dependencies
 pip install -r requirements.txt
 ```
 
 ## Usage
 
 ```bash
-# Run the full pipeline
-cd food_recommendation_system
+# Run full pipeline with all 4 models
 python main.py
+
+# Launch interactive web app
+streamlit run app.py
 ```
-
-This will:
-1. Generate synthetic food and ratings data
-2. Preprocess data (clean, engineer features, split)
-3. Build and demo a content-based recommender
-4. Build and demo a collaborative filtering recommender
-5. Evaluate the models with RMSE and Precision@K
-6. Print a comparison summary
-
-## Dependencies
-
-| Package | Purpose |
-|---------|---------|
-| `numpy` | Numerical computing |
-| `pandas` | Data manipulation |
-| `scikit-learn` | TF-IDF, cosine similarity, train/test split |
-| `scipy` | Truncated SVD for matrix factorisation |
-
-## Key Concepts Explained
-
-### TF-IDF (Term Frequency–Inverse Document Frequency)
-Converts text into numerical vectors. Words that appear frequently in one document but rarely across all documents get higher weights. This helps distinguish "garlic" (common across cuisines) from "lemongrass" (distinctive to Thai cuisine).
-
-### Cosine Similarity
-Measures the angle between two vectors, ranging from 0 (completely different) to 1 (identical). It's magnitude-independent, so a food with many tags is compared fairly against one with fewer tags.
-
-### SVD (Singular Value Decomposition)
-Decomposes the user-item matrix into latent factors. Each factor captures a hidden "taste dimension" — for example, one factor might represent a preference for spicy food, another for desserts. This is the same family of methods that powered the Netflix Prize winning solution.
-
-### RMSE vs Precision@K
-- **RMSE** tells you how well you predict *exact ratings* (regression metric)
-- **Precision@K** tells you how well you identify *what users will like* (ranking metric)
-- Both together give a complete picture of recommendation quality
 
 ## Future Improvements
 
-1. **Hybrid Model**: Combine content-based and collaborative filtering for better coverage
-2. **Neural Collaborative Filtering**: Use deep learning for more expressive models
-3. **A/B Testing**: Validate recommendations with real user feedback
-4. **Real-Time Serving**: Deploy with caching for low-latency recommendations
-5. **Contextual Features**: Incorporate time of day, location, dietary restrictions
+- Neural collaborative filtering (deep learning)
+- A/B testing with real user feedback
+- Real-time serving with caching
+- Contextual features (time, location, dietary restrictions)
+- User feedback loop for continuous model improvement
