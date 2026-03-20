@@ -17,6 +17,4 @@ Python, Pandas, Scikit-learn
 
 🚀 Features
 - Personalized recommendations
-- Similar food suggestions
-
- 📸 Output
+- Similar food suggestions.
