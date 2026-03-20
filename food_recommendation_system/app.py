@@ -280,7 +280,7 @@ with tab3:
             f"Predictions are off by **~{eval_results['rmse']:.2f} stars** "
             f"on a 1-5 scale. Typical range for food recommenders: 0.7 - 1.2."
         )
-        st.progress(min(1.0, 1.0 - (eval_results["rmse"] - 0.7) / 0.8))
+        st.progress(max(0.0, min(1.0, 1.0 - (eval_results["rmse"] - 0.7) / 0.8)))
 
     with eval_col2:
         st.subheader("Precision@10")
