@@ -10,6 +10,7 @@ This script orchestrates the complete recommendation pipeline:
     Step 2 → Preprocess: clean missing values, engineer features, train/test split
     Step 3a → Content-Based Filtering: TF-IDF + cosine similarity
     Step 3b → Collaborative Filtering: matrix factorisation via SVD
+    Step 3c → Hybrid Filtering: weighted combination of both approaches
     Step 4 → Evaluate: RMSE (rating accuracy) + Precision@K (relevance)
 
 Run:
@@ -28,6 +29,7 @@ from data.generate_dataset import load_datasets
 from preprocessing.data_preprocessing import preprocess_pipeline
 from models.content_based import ContentBasedRecommender
 from models.collaborative import CollaborativeFilteringRecommender
+from models.hybrid import HybridRecommender, PopularityRecommender
 from evaluation.metrics import evaluate_collaborative_filtering
 
 warnings.filterwarnings("ignore")
@@ -119,6 +121,35 @@ def main() -> None:
     print(f"\n  📊 Predicted rating for User {demo_user} → '{food_name}': {pred:.2f}")
 
     # ==================================================================
+    # STEP 3C: HYBRID RECOMMENDATION
+    # ==================================================================
+    print_banner("STEP 3C: HYBRID RECOMMENDATION")
+    print("\n  Building hybrid model (content + collaborative + popularity fallback) ...\n")
+
+    popularity_model = PopularityRecommender(ratings_clean, foods_processed, min_ratings=5)
+    hybrid_model = HybridRecommender(
+        cb_model=cb_model,
+        cf_model=cf_model,
+        popularity_model=popularity_model,
+        alpha=0.5,
+    )
+
+    # Demo: hybrid recommendations for the same user
+    print(f"\n  🎯 Hybrid recommendations for User {demo_user}:")
+    hybrid_recs = hybrid_model.recommend_for_user(
+        demo_user, ratings_clean, foods_processed, top_n=5
+    )
+    print(hybrid_recs.to_string(index=False))
+
+    # Demo: cold-start user (no ratings)
+    cold_start_user = 999
+    print(f"\n  🆕 Cold-start recommendations for new User {cold_start_user} (popularity fallback):")
+    cold_recs = hybrid_model.recommend_for_user(
+        cold_start_user, ratings_clean, foods_processed, top_n=5
+    )
+    print(cold_recs.to_string(index=False))
+
+    # ==================================================================
     # STEP 4: EVALUATION
     # ==================================================================
     print_banner("STEP 4: EVALUATION METRICS")
@@ -161,13 +192,18 @@ def main() -> None:
 
     print("""
   ┌─────────────────────────────────────────────────────────────────┐
-  │  NEXT STEPS (for production):                                   │
-  │    1. Hybrid model combining both approaches                    │
-  │    2. Deep learning (neural collaborative filtering)            │
-  │    3. A/B testing with real user feedback                       │
-  │    4. Real-time recommendation serving with caching             │
-  │    5. Incorporate contextual features (time, location, dietary  │
-  │       restrictions)                                             │
+  │  IMPLEMENTED FEATURES:                                          │
+  │    1. Content-based filtering (TF-IDF + cosine similarity)      │
+  │    2. Collaborative filtering (SVD matrix factorisation)        │
+  │    3. Hybrid model combining both approaches                    │
+  │    4. Popularity-based cold-start fallback                      │
+  │    5. Interactive Streamlit web application                     │
+  ├─────────────────────────────────────────────────────────────────┤
+  │  FUTURE IMPROVEMENTS:                                           │
+  │    1. Deep learning (neural collaborative filtering)            │
+  │    2. A/B testing with real user feedback                       │
+  │    3. Real-time recommendation serving with caching             │
+  │    4. Contextual features (time, location, dietary restrictions)│
   └─────────────────────────────────────────────────────────────────┘
     """)
 

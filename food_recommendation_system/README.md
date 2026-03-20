@@ -1,6 +1,6 @@
 # Food Recommendation System
 
-An end-to-end food recommendation system built in Python, demonstrating **content-based filtering**, **collaborative filtering**, and proper **evaluation metrics**.
+An end-to-end food recommendation system built in Python, demonstrating **content-based filtering**, **collaborative filtering**, **hybrid recommendation**, and proper **evaluation metrics** — with an interactive **Streamlit web app**.
 
 ## Project Structure
 
@@ -15,10 +15,12 @@ food_recommendation_system/
 ├── models/
 │   ├── __init__.py
 │   ├── content_based.py           # Content-based filtering (TF-IDF + cosine similarity)
-│   └── collaborative.py           # Collaborative filtering (SVD matrix factorisation)
+│   ├── collaborative.py           # Collaborative filtering (SVD matrix factorisation)
+│   └── hybrid.py                  # Hybrid recommender + popularity-based cold-start fallback
 ├── evaluation/
 │   ├── __init__.py
 │   └── metrics.py                 # RMSE & Precision@K evaluation
+├── app.py                         # Streamlit web application
 ├── main.py                        # End-to-end pipeline runner
 ├── requirements.txt               # Python dependencies
 └── README.md                      # This file
@@ -49,6 +51,11 @@ food_recommendation_system/
 - **Rating Prediction**: Reconstructs the matrix to predict unseen user-item ratings
 - **Strengths**: Discovers non-obvious patterns, no feature engineering needed
 - **Limitations**: Cold-start problem for new users/items
+
+### Step 3C: Hybrid Recommendation (`models/hybrid.py`)
+- **Weighted Combination**: `hybrid_score = alpha * content_score + (1-alpha) * collab_score`
+- **Popularity Fallback**: Bayesian average (IMDb-style) for cold-start users with no ratings
+- **Strengths**: Better coverage than either method alone, handles all user types
 
 ### Step 4: Evaluation (`evaluation/metrics.py`)
 - **RMSE (Root Mean Squared Error)**: Measures rating prediction accuracy (lower is better)
@@ -82,8 +89,16 @@ This will:
 2. Preprocess data (clean, engineer features, split)
 3. Build and demo a content-based recommender
 4. Build and demo a collaborative filtering recommender
-5. Evaluate the models with RMSE and Precision@K
-6. Print a comparison summary
+5. Build and demo the hybrid recommender (with cold-start fallback)
+6. Evaluate the models with RMSE and Precision@K
+7. Print a comparison summary
+
+### Launch the Streamlit Web App
+
+```bash
+cd food_recommendation_system
+streamlit run app.py
+```
 
 ## Dependencies
 
@@ -93,6 +108,7 @@ This will:
 | `pandas` | Data manipulation |
 | `scikit-learn` | TF-IDF, cosine similarity, train/test split |
 | `scipy` | Truncated SVD for matrix factorisation |
+| `streamlit` | Interactive web application |
 
 ## Key Concepts Explained
 
@@ -112,8 +128,7 @@ Decomposes the user-item matrix into latent factors. Each factor captures a hidd
 
 ## Future Improvements
 
-1. **Hybrid Model**: Combine content-based and collaborative filtering for better coverage
-2. **Neural Collaborative Filtering**: Use deep learning for more expressive models
-3. **A/B Testing**: Validate recommendations with real user feedback
-4. **Real-Time Serving**: Deploy with caching for low-latency recommendations
-5. **Contextual Features**: Incorporate time of day, location, dietary restrictions
+1. **Neural Collaborative Filtering**: Use deep learning for more expressive models
+2. **A/B Testing**: Validate recommendations with real user feedback
+3. **Real-Time Serving**: Deploy with caching for low-latency recommendations
+4. **Contextual Features**: Incorporate time of day, location, dietary restrictions
